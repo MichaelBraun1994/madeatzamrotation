@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polaroid Image Rotator</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+
+    .polaroid {
+      background: white;
+      padding: 10px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      border: 1px solid #ccc;
+      width: 300px;
+      text-align: center;
+      transform: rotate(-2deg);
+    }
+
+    .polaroid img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .caption {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="polaroid">
+    <img id="photo" src="" alt="Polaroid Image" />
+    <div class="caption" id="caption"></div>
+  </div>
+
+  <script>
+    const images = [
+      {% for imagepath in imagepaths %}
+        { src: "{{ url_for('static', filename='cache/' + imagepath) }}", caption: "Sunset over the hills" },
+      {% endfor %}
+    ];
+
+    let index = 0;
+    const photo = document.getElementById("photo");
+    const caption = document.getElementById("caption");
+
+    function showImage(i) {
+      photo.src = images[i].src;
+      caption.textContent = images[i].caption;
+    }
+
+    function rotateImages() {
+      showImage(index);
+      index = (index + 1) % images.length;
+    }
+
+    function randomizePolaroidRotation() {
+      const polaroids = document.querySelectorAll('.polaroid');
+      polaroids.forEach(el => {
+        const range = 12
+        const angle = (Math.random() * range - (range / 2)).toFixed(2); // Random between -4 and 4
+        el.style.transform = `rotate(${angle}deg)`;
+      });
+    }
+
+    photo.addEventListener('load', () => {
+        randomizePolaroidRotation()
+    });
+
+    rotateImages(); 
+    setInterval(rotateImages, 2000); 
+  </script>
+</body>
+</html>

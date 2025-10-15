@@ -13,11 +13,15 @@ from mattermostdriver import Driver
 
 def create_post_cache(logger: logging.Logger):
     driver = connect_to_mattermost(get_bot_secrets_from_env(), logger)
-    posts = fetch_posts_metadata_from_channel(10, driver, logger)
+    posts = fetch_posts_metadata_from_channel(50, driver, logger)
     cache_posts(posts, driver, logger)
 
     driver.logout()
     logger.info("Logged out")
+
+
+def get_cache_path():
+    return os.path.join(os.path.dirname(__file__), "static/cache")
 
 
 class BotSecrets:
@@ -158,7 +162,7 @@ def fetch_images_of_post(
 
 
 def get_cache_entry_path(post: PostMetaData):
-    return os.path.join("cache", post.post_id)
+    return os.path.join(get_cache_path(), post.post_id)
 
 
 def create_post_cache_entry(post: PostMetaData, driver: Driver, logger: logging.Logger):
@@ -194,8 +198,8 @@ def clean_cache_from_old_posts(posts: List[PostMetaData], logger: logging.Logger
     """Deletes old cache entries of posts that are no longer relevant or got removed"""
     cache_entries = [
         post_id
-        for post_id in os.listdir("cache")
-        if os.path.isdir(os.path.join("cache", post_id))
+        for post_id in os.listdir(get_cache_path())
+        if os.path.isdir(os.path.join(get_cache_path(), post_id))
     ]
 
     new_post_ids = [post.post_id for post in posts]
@@ -204,7 +208,7 @@ def clean_cache_from_old_posts(posts: List[PostMetaData], logger: logging.Logger
     ]
 
     for post_to_remove in posts_to_remove:
-        shutil.rmtree(os.path.join("cache", post_to_remove))
+        shutil.rmtree(os.path.join(get_cache_path(), post_to_remove))
         logger.info(f"Removed cache entry {post_to_remove}")
 
 
@@ -212,7 +216,7 @@ def cache_posts(posts: List[PostMetaData], driver: Driver, logger: logging.Logge
     """
     Caches posts based on their post_id and update_at meta information.
     """
-    os.makedirs("cache", exist_ok=True)
+    os.makedirs(get_cache_path(), exist_ok=True)
 
     clean_cache_from_old_posts(posts, logger)
 
