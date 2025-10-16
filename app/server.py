@@ -5,7 +5,7 @@ Main of Made@ZAM Rotation
 import logging
 import sys
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify, url_for
 from posts_cache import create_post_cache, get_cache_path
 
 
@@ -24,10 +24,19 @@ def get_image_paths(subfolder):
     return jpg_files
 
 
+@app.route("/api/images")
+def get_image_urls():
+    image_paths = get_image_paths(get_cache_path())
+    image_urls = [
+        url_for("static", filename="cache/" + image_path) for image_path in image_paths
+    ]
+
+    return jsonify(image_urls)
+
+
 @app.route("/")
 def index():
-    imagepaths = get_image_paths(get_cache_path())
-    return render_template("index.html", imagepaths=imagepaths)
+    return render_template("index.html")
 
 
 def setup_logger():
@@ -39,4 +48,3 @@ def start_server():
     logger = setup_logger()
     create_post_cache(logger)
     app.run()
-    # app.run(debug=True)
