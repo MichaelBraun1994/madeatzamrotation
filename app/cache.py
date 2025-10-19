@@ -32,19 +32,23 @@ class Cache:
 
         self.logger.info("Finished caching posts")
 
+    def get_cached_post_ids(self):
+        return [
+            name
+            for name in os.listdir(self.cache_path)
+            if os.path.isdir(os.path.join(self.cache_path, name))
+        ]
+
     def get_posts(self):
-        jpg_files = []
-        for root, dirs, files in os.walk(self.cache_path):
-            for file in files:
-                if file.lower().endswith(".jpg"):
-                    relative_path = os.path.relpath(
-                        os.path.join(root, file), start=self.cache_path
-                    )
-                    jpg_files.append(relative_path)
-        return jpg_files
+        posts = []
+
+        for post_id in self.get_cached_post_ids():
+            posts.append(self.read_cache_entry(post_id))
+
+        return posts
 
     def cache_post(self, post: ImagePost):
-        cache_entry_path = self.get_cache_entry_path(post)
+        cache_entry_path = self.get_cache_entry_path(post.post_id)
         os.makedirs(cache_entry_path, exist_ok=True)
 
         self.cache_post_metadata(post)
@@ -58,15 +62,33 @@ class Cache:
             "username": post.username,
             "message": post.message,
         }
-        filepath = os.path.join(self.get_cache_entry_path(post), "meta.json")
+        filepath = os.path.join(self.get_cache_entry_path(post.post_id), "meta.json")
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
-    def get_cache_entry_path(self, post: ImagePost):
-        return os.path.join(self.cache_path, post.post_id)
+    def read_cache_entry(self, post_id):
+        image_cache_path = self.get_cache_entry_path(post_id)
+
+        filepath = os.path.join(image_cache_path, "meta.json")
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        username = data.get("username")
+        message = data.get("message")
+
+        image_files = [
+            os.path.join("cache", post_id, file_name)
+            for file_name in os.listdir(image_cache_path)
+            if file_name != "meta.json"
+        ]
+
+        return {"username": username, "message": message, "image_files": image_files}
+
+    def get_cache_entry_path(self, post_id):
+        return os.path.join(self.cache_path, post_id)
 
     def is_cache_entry_valid(self, post: ImagePost) -> bool:
-        cache_entry_path = self.get_cache_entry_path(post)
+        cache_entry_path = self.get_cache_entry_path(post.post_id)
         if not os.path.exists(cache_entry_path):
             return False
 
@@ -76,7 +98,9 @@ class Cache:
         return True
 
     def get_cache_entry_last_update(self, post: ImagePost):
-        metadata_filepath = os.path.join(self.get_cache_entry_path(post), "meta.json")
+        metadata_filepath = os.path.join(
+            self.get_cache_entry_path(post.post_id), "meta.json"
+        )
         with open(metadata_filepath, "r", encoding="utf-8") as file:
             data = json.load(file)
 

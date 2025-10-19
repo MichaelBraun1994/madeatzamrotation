@@ -14,12 +14,15 @@ app = Flask(__name__)
 
 @app.route("/api/images")
 def get_image_urls():
-    image_paths = cache.get_posts()
-    image_urls = [
-        url_for("static", filename="cache/" + image_path) for image_path in image_paths
-    ]
+    image_posts = cache.get_posts()
 
-    return jsonify(image_urls)
+    for image_post in image_posts:
+        image_post["image_files"] = [
+            url_for("static", filename=image_path)
+            for image_path in image_post["image_files"]
+        ]
+
+    return jsonify(image_posts)
 
 
 @app.route("/")

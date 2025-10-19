@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Polaroid Image Rotator</title>
+  <title>Made@ZAM</title>
   <style>
     body {
       margin: 0;
@@ -15,28 +15,34 @@
       font-family: sans-serif;
     }
 
-    .polaroid {
-      display: none;
-      background: white;
-      padding: 10px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-      border: 1px solid #ccc;
-      width: 300px;
-      text-align: center;
-      transform: rotate(-2deg);
-    }
+      .polaroid {
+    width: 500px;
+    height: 640px;
+    background: white;
+    padding: 10px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-    .polaroid img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+  .polaroid img {
+    width: 100%;
+    height: 85%;
+    background-color: black;
+    object-fit: contain;
+    display: block;
+  }
 
-    .caption {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
+  .caption {
+    padding: 10px;
+    text-align: center;
+    font-size: clamp(0.8em, 1vw, 1.2em);
+    word-wrap: break-word;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
   </style>
 </head>
 <body>
@@ -50,7 +56,10 @@
       try {
         response = await fetch('/api/images')
         response = await response.json()
-        imageData = response
+        imagePosts = response
+
+        imageIndex = 0
+        postIndex = 0
       }
       catch(error) {
         console.error('Error fetching image data:', error)
@@ -60,23 +69,37 @@
     const photo = document.getElementById("photo");
     const caption = document.getElementById("caption");
 
-    function setImage(imageIndex) {
-      photo.src = imageData[imageIndex];
-      caption.textContent = "Hello World"; //images[i].caption;
+    function setCaption(username, message) {
+      if (message.length > 0) {
+        newMessage = "<b>@" + username + ":</b> " + message;
+      }
+      else {
+        newMessage = "<b>@" + username + "</b>";
+      }
+
+      caption.innerHTML = newMessage;
+    }
+
+    function setImage(postIndex, imageIndex) {
+      imagePost = imagePosts[postIndex]
+
+      photo.src = imagePost["image_files"][imageIndex];
+      setCaption(imagePost["username"], imagePost["message"])
     }
 
     function presentNextImage() {
-      if (imageData.length == 0) {
+      if (imagePosts.length == 0) {
         return;
       }
 
-      setImage(imageIndex);
-      imageIndex = (imageIndex + 1) % imageData.length;
+      setImage(postIndex, imageIndex);
 
-      if (Number.isNaN(imageIndex)) {
-        console.log(imageData.length)
-        console.log(imageData)
-        console.log("DAMN")
+      if (imageIndex == imagePosts[postIndex]["image_files"].length - 1) {
+        postIndex = (postIndex + 1) % imagePosts.length;
+        imageIndex = 0;
+      }
+      else {
+        imageIndex = imageIndex + 1;
       }
     }
 
@@ -93,7 +116,8 @@
         randomizePolaroidRotation()
     });
 
-    let imageData = []
+    let imagePosts = []
+    let postIndex = 0;
     let imageIndex = 0;
 
     function setPolaroidsVisibility(visibility) {
@@ -107,7 +131,7 @@
     setPolaroidsVisibility(true);
     presentNextImage(); 
 
-    const IMAGE_DATA_UPDATE_INTERVAL = 1000 * 60 * 15;
+    const IMAGE_DATA_UPDATE_INTERVAL = 2000 //1000 * 60 * 15;
     const SINGLE_IMAGE_PRESENTATION_DURATION = 2000
     setInterval(fetchImageData, IMAGE_DATA_UPDATE_INTERVAL); 
     setInterval(presentNextImage, SINGLE_IMAGE_PRESENTATION_DURATION); 
