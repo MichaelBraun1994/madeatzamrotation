@@ -47,11 +47,16 @@
 </head>
 <body>
   <div class="polaroid">
-    <img id="photo" src="" alt="Loading.." />
+    <img id="photo" src="" alt="Loading.." onerror="handleImageError()"/>
     <div class="caption" id="caption"></div>
   </div>
 
   <script>
+    function handleImageError() {
+      console.log("Image failed to load. Updating image data.");
+      fetchImageData()
+    }
+
     async function fetchImageData() {
       try {
         response = await fetch('/api/images')
@@ -131,8 +136,8 @@
     setPolaroidsVisibility(true);
     presentNextImage(); 
 
-    const IMAGE_DATA_UPDATE_INTERVAL = 1000 * 60 * 15;
-    const SINGLE_IMAGE_PRESENTATION_DURATION = 2000
+    const IMAGE_DATA_UPDATE_INTERVAL = {{ image_fetching_interval }};
+    const SINGLE_IMAGE_PRESENTATION_DURATION = {{ image_rotation_interval }}
     setInterval(fetchImageData, IMAGE_DATA_UPDATE_INTERVAL); 
     setInterval(presentNextImage, SINGLE_IMAGE_PRESENTATION_DURATION); 
   </script>

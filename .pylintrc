@@ -107,6 +107,7 @@ disable=R,
         missing-class-docstring,
         metaclass-assignment,
         next-method-called,
+        global-variable-undefined,
         next-method-defined,
         no-absolute-import,
         no-init,  # added

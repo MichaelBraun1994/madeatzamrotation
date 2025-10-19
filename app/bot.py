@@ -3,6 +3,7 @@ from image_posts import ImagePost
 from logging import Logger
 from mattermostdriver import Driver
 from dotenv import load_dotenv
+from settings import Settings
 import os
 
 
@@ -17,14 +18,15 @@ class Bot:
     Bot interacting with mattermost channel.
     """
 
-    def __init__(self, logger: Logger):
+    def __init__(self, settings: Settings, logger: Logger):
+        self.settings = settings
         self.logger = logger
         self.load_secrets_from_env()
 
     def connect(self):
         self.driver = Driver(
             {
-                "url": "chat.zam.haus",
+                "url": self.settings.instance_url,
                 "token": self.secrets.token,
                 "port": 443,
                 "scheme": "https",
@@ -59,16 +61,17 @@ class Bot:
         return file_type.startswith("image/")
 
     def fetch_posts_with_images(self) -> List[ImagePost]:
-        team_name = "ZAM"
-        channel_name = "made-at-zam"
-        posts_fetch_limit = 100
+        self.logger.info("Fetching posts")
+
+        team_name = self.settings.team_name
+        channel_name = self.settings.channel_name
+        max_post_count = self.settings.backend_max_post_count
         team = self.driver.teams.get_team_by_name(team_name)
         channel = self.driver.channels.get_channel_by_name(team["id"], channel_name)
 
         posts = self.driver.posts.get_posts_for_channel(
-            channel["id"], params={"page": 0, "per_page": posts_fetch_limit}
+            channel["id"], params={"page": 0, "per_page": max_post_count}
         )
-        self.logger.info("Fetched posts metadata")
 
         post_ids_with_files = filter(
             lambda post_id: posts["posts"][post_id].get("file_ids"),
@@ -110,8 +113,8 @@ class Bot:
             file_info = self.driver.files.get_file_metadata(file_id)
             file_extension = file_info.get("extension")
             file_name = file_id + "." + file_extension
+            self.logger.info(f"\tFetching {file_name}")
 
             with open(os.path.join(output_path, file_name), "wb") as f:
                 file_bytes = self.driver.files.get_file(file_id).content
                 f.write(file_bytes)
-                self.logger.info(f"\tFetched {file_name}")

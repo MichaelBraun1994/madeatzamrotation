@@ -6,6 +6,7 @@ from logging import Logger
 
 import os
 import json
+import threading
 
 
 class Cache:
@@ -16,21 +17,22 @@ class Cache:
     def __init__(self, bot: Bot, logger: Logger):
         self.bot = bot
         self.logger = logger
+        self.update_lock = threading.Lock()
         self.cache_path = os.path.join(os.path.dirname(__file__), "static/cache")
         pass
 
     def update(self, fetched_posts: ImagePost):
-        os.makedirs(self.cache_path, exist_ok=True)
+        with self.update_lock:
+            self.logger.info("Updating cache")
+            os.makedirs(self.cache_path, exist_ok=True)
 
-        self.clean_cache_from_old_posts(fetched_posts)
+            self.clean_cache_from_old_posts(fetched_posts)
 
-        for post in fetched_posts:
-            if not self.is_cache_entry_valid(post):
-                self.cache_post(post)
-            else:
-                self.logger.info(f"Cache hit {post.post_id}")
-
-        self.logger.info("Finished caching posts")
+            for post in fetched_posts:
+                if not self.is_cache_entry_valid(post):
+                    self.cache_post(post)
+                else:
+                    self.logger.info(f"\tCache hit {post.post_id}")
 
     def get_cached_post_ids(self):
         return [
@@ -40,12 +42,13 @@ class Cache:
         ]
 
     def get_posts(self):
-        posts = []
+        with self.update_lock:
+            posts = []
 
-        for post_id in self.get_cached_post_ids():
-            posts.append(self.read_cache_entry(post_id))
+            for post_id in self.get_cached_post_ids():
+                posts.append(self.read_cache_entry(post_id))
 
-        return posts
+            return posts
 
     def cache_post(self, post: ImagePost):
         cache_entry_path = self.get_cache_entry_path(post.post_id)
@@ -122,5 +125,5 @@ class Cache:
         ]
 
         for post_to_remove in posts_to_remove:
+            self.logger.info(f"\tRemove cache entry {post_to_remove}")
             shutil.rmtree(os.path.join(self.cache_path, post_to_remove))
-            self.logger.info(f"Removed cache entry {post_to_remove}")
