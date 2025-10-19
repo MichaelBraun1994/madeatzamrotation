@@ -40,8 +40,8 @@ class Bot:
     def load_secrets_from_env(self) -> BotSecrets:
         load_dotenv()
 
-        username_env_variable = "MATTERMOST_BOT_USERNAME"
-        token_env_variable = "MATTERMOST_BOT_TOKEN"
+        username_env_variable = "MADEATZAM_MATTERMOST_BOT_USERNAME"
+        token_env_variable = "MADEATZAM_MATTERMOST_BOT_TOKEN"
 
         username = os.getenv(username_env_variable)
         if username is None:
