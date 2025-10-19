@@ -47,11 +47,11 @@
 </head>
 <body>
   <div class="polaroid">
-    <img id="photo" src="" alt="Loading.." onerror="handleImageError()"/>
+    <img id="photo" alt="Loading.." onerror="handleImageError()"/>
     <div class="caption" id="caption"></div>
   </div>
 
-  <script>
+  <script type="module">
     function handleImageError() {
       console.log("Image failed to load. Updating image data.");
       fetchImageData()
@@ -59,7 +59,7 @@
 
     async function fetchImageData() {
       try {
-        response = await fetch('/api/images')
+        let response = await fetch('/api/images')
         response = await response.json()
         imagePosts = response
 
@@ -75,6 +75,8 @@
     const caption = document.getElementById("caption");
 
     function setCaption(username, message) {
+      let newMessage = ""
+
       if (message.length > 0) {
         newMessage = "<b>@" + username + ":</b> " + message;
       }
@@ -86,7 +88,7 @@
     }
 
     function setImage(postIndex, imageIndex) {
-      imagePost = imagePosts[postIndex]
+      let imagePost = imagePosts[postIndex]
 
       photo.src = imagePost["image_files"][imageIndex];
       setCaption(imagePost["username"], imagePost["message"])
@@ -94,6 +96,7 @@
 
     function presentNextImage() {
       if (imagePosts.length == 0) {
+        console.log("No images to show.");
         return;
       }
 
@@ -125,15 +128,8 @@
     let postIndex = 0;
     let imageIndex = 0;
 
-    function setPolaroidsVisibility(visibility) {
-      polaroidElements = document.getElementsByClassName('polaroid');
-      for (let i = 0; i < polaroidElements.length; i++) {
-        polaroidElements[i].style.display = visibility ? 'block' : 'none';
-      }
-    }
 
-    fetchImageData();
-    setPolaroidsVisibility(true);
+    await fetchImageData();
     presentNextImage(); 
 
     const IMAGE_DATA_UPDATE_INTERVAL = {{ image_fetching_interval }};

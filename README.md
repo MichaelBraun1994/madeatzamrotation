@@ -6,7 +6,7 @@ A mattermost channel crawler that displays the newest creations made at zam.
 
 Create a venv, install required pip packages and run:
 
-`python ./app/app.py ./settings.py`
+`python ./app/app.py ./settings.json`
 
 
 # Configuration

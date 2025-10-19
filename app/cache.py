@@ -34,6 +34,8 @@ class Cache:
                 else:
                     self.logger.info(f"\tCache hit {post.post_id}")
 
+            self.logger.info("Finished cache update")
+
     def get_cached_post_ids(self):
         return [
             name

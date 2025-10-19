@@ -46,11 +46,15 @@ def setup_logger():
     return logging.getLogger(__name__)
 
 
+def fetch_posts():
+    cache.update(bot.fetch_posts_with_images())
+
+
 def start_periodic_posts_fetching(interval_seconds):
     def fetch_posts_task():
         while True:
-            cache.update(bot.fetch_posts_with_images())
             time.sleep(interval_seconds)
+            fetch_posts()
 
     thread = threading.Thread(target=fetch_posts_task, daemon=True)
     thread.start()
@@ -70,4 +74,7 @@ def start_server(settings_path):
     cache = Cache(bot, logger)
 
     start_periodic_posts_fetching(settings.backend_posts_fetching_interval)
+    fetch_posts()
+
+    logger.info("Starting server")
     app.run()
