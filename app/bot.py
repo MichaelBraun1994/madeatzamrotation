@@ -13,6 +13,10 @@ class BotSecrets:
 
 
 class Bot:
+    """
+    Bot interacting with mattermost channel.
+    """
+
     def __init__(self, logger: Logger):
         self.logger = logger
         self.load_secrets_from_env()

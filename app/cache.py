@@ -9,6 +9,10 @@ import json
 
 
 class Cache:
+    """
+    Local cache of posts with images.
+    """
+
     def __init__(self, bot: Bot, logger: Logger):
         self.bot = bot
         self.logger = logger
