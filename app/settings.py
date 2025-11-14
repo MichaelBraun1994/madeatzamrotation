@@ -21,6 +21,6 @@ class Settings:
         self.frontend_images_fetching_interval = (
             frontend.get("images_fetching_interval") * 1000
         )
-        self.frontend_image_rotation_interval = (
-            frontend.get("image_rotation_interval") * 1000
+        self.frontend_polaroid_batch_presentation_duration = (
+            frontend.get("polaroid_batch_presentation_duration") * 1000
         )

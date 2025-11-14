@@ -5,137 +5,327 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Made@ZAM</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
+
     body {
       margin: 0;
       background-color: black;
+      background-image: url(static/background.svg);
+      background-size: cover;
+      background-position: 50% 50%;
+
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
-      font-family: sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
     }
 
+    @media (orientation: landscape) {
+      #polaroids-container {
+        flex: 1;
+        margin-top: 170px;
+        margin-bottom: 220px;
+        min-height: 0;
+
+        display: flex;
+        flex-wrap: wrap;
+
+        justify-content: center;
+        align-items: center;
+        overflow: visible;
+      }
+      body {
+        background-image: url('static/background_landscape.svg');
+        background-size: cover;
+      }
       .polaroid {
-    width: 500px;
-    height: 640px;
-    background: white;
-    padding: 10px;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    border: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+        padding: 13px;
+        width: 341px;
+        height: 335px;
+        margin: 0px 25px;
+        background: white;
+        background: linear-gradient(white, oldlace);
+        border: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+      img {
+        height: 238px;
+        object-fit: contain;
+        background-color: black;
+        width: 100%;
+        object-fit: contain;
+        background-color: black;
+      }
 
-  .polaroid img {
-    width: 100%;
-    height: 85%;
-    background-color: black;
-    object-fit: contain;
-    display: block;
-  }
+      .polaroid .caption {
+        font-family: "Caveat", cursive;
+        margin-top: 6px;
+        font-size: 20px;
+        color: #333;
+        text-align: center;
+      }
 
-  .caption {
-    padding: 10px;
-    text-align: center;
-    font-size: clamp(0.8em, 1vw, 1.2em);
-    word-wrap: break-word;
-    overflow-y: auto;
-    flex-grow: 1;
-  }
+      .polaroid:nth-child(7n) { 
+        transform: translateY(28px) translateX(5px) rotate(9deg); 
+      }
+
+      /* Create alternating rhythm between rows */
+      .polaroid:nth-child(odd) {
+        transform: translateY(-25px) translateX(-2px) rotate(4deg);
+      }
+
+      .polaroid:nth-child(even) {
+        transform: translateY(0px) rotate(-2deg);
+      }
+
+      /* Progressive rhythm - subtle scale changes */
+      .polaroid:nth-child(5n) {
+        transform: translate(-20px) translateX(10px) rotate(7deg);
+      }
+
+      .polaroid:nth-child(3n+1) {
+        transform: translateY(-23px) rotate(-1deg);
+      }
+    }
+
+
+    /* Portrait orientation */
+    @media (orientation: portrait) {
+      #polaroids-container {
+        flex: 1;
+        margin-top: 500px;
+        margin-bottom: 550px;
+        min-height: 0;
+
+        display: flex;
+        flex-wrap: wrap;
+
+        justify-content: center;
+        align-items: center;
+        overflow: visible;
+      }
+      body {
+        background-image: url('static/background_portrait.svg');
+        background-size: cover;
+      }
+      .polaroid {
+        padding: 26px;
+        width: 682px;
+        height: 670px;
+        margin: 0px 55px;
+        background: white;
+        background: linear-gradient(white, oldlace);
+        border: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+      img {
+        height: 473px;
+        width: 100%;
+        object-fit: contain;
+        background-color: black;
+      }
+      .polaroid .caption {
+        font-family: "Caveat", cursive;
+        margin-top: 8px;
+        font-size: 24px;
+        color: #333;
+        text-align: center;
+      }
+
+      .polaroid:nth-child(4n) {
+        transform: translateY(0px) translateX(47px) translateY(5px) rotate(5deg);
+      }
+      .polaroid:nth-child(4n+2) {
+        transform: translateY(0px) translateX(-21px)  translateY(-7px) rotate(3deg);
+      }
+      .polaroid:nth-child(4n+1) {
+        transform: translateY(0px) translateX(-54px) translateY(10px) rotate(8deg);
+      }
+      .polaroid:nth-child(4n+3) {
+        transform: translateY(0px) translateX(22px) rotate(2deg);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="polaroid">
-    <img id="photo" alt="Loading.." onerror="handleImageError()"/>
-    <div class="caption" id="caption"></div>
-  </div>
-
+  <div id="polaroids-container"></div>
   <script type="module">
-    function handleImageError() {
-      console.log("Image failed to load. Updating image data.");
-      fetchImageData()
-    }
-
     async function fetchImageData() {
       try {
         let response = await fetch('/api/images')
         response = await response.json()
-        imagePosts = response
-
-        imageIndex = 0
-        postIndex = 0
+        imageData = response
+        currentBatchIndex = 0;
       }
       catch(error) {
         console.error('Error fetching image data:', error)
       }
     }
 
-    const photo = document.getElementById("photo");
-    const caption = document.getElementById("caption");
+    let imageData = []
+    let currentBatchIndex = 0;
 
-    function setCaption(username, message) {
-      let newMessage = ""
+    function calculatePolaroidBatchSize() {
+      const marginLeft = parseInt(getStyleRuleValue("polaroid", "margin-left"));
+      const marginRight = parseInt(getStyleRuleValue("polaroid", "margin-right"));
+      const imageHeight = parseInt(getStyleRuleValue("polaroid", "height"));
+      const imageWidth = parseInt(getStyleRuleValue("polaroid", "width")) + marginLeft + marginRight;
+
+      const polaroidsContainer = document.getElementById("polaroids-container")
+      const polaroidsContainerStyle = window.getComputedStyle(polaroidsContainer);
+
+      const polaroidsContainerHeight = window.innerHeight - parseInt(polaroidsContainerStyle.marginTop) -
+        parseInt(polaroidsContainerStyle.marginBottom);
+      const polaroidsContainerWidth = window.innerWidth
+
+      const cols = Math.floor(polaroidsContainerWidth / imageWidth);
+      const rows = Math.floor(polaroidsContainerHeight / imageHeight);
+
+      return cols * rows;
+    }
+
+function getStyleRuleValue(selector, style) {
+  const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+  const selector_compare = selector.toLowerCase();
+  const selector_compare2 = selector_compare.substr(0,1) === '.' ? 
+    selector_compare.substr(1) : '.' + selector_compare;
+  
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    const mysheet = document.styleSheets[i];
+    let myrules;
+    
+    try {
+      myrules = mysheet.cssRules ? mysheet.cssRules : mysheet.rules;
+    } catch (e) {
+      // Skip stylesheets we can't access (CORS)
+      continue;
+    }
+    
+    for (let j = 0; j < myrules.length; j++) {
+      const rule = myrules[j];
+      
+      if (rule.type === CSSRule.MEDIA_RULE) {
+        const mediaText = rule.conditionText || rule.media.mediaText;
+        
+        if (window.matchMedia(mediaText).matches) {
+          const mediaRules = rule.cssRules || rule.rules;
+          for (let k = 0; k < mediaRules.length; k++) {
+            if (mediaRules[k].selectorText) {
+              const check = mediaRules[k].selectorText.toLowerCase();
+              switch (check) {
+                case selector_compare:
+                case selector_compare2:
+                  return mediaRules[k].style[style];
+              }
+            }
+          }
+        }
+      }
+      // Regular rule (not in media query)
+      else if (rule.selectorText) {
+        const check = rule.selectorText.toLowerCase();
+        switch (check) {
+          case selector_compare:
+          case selector_compare2:
+            return rule.style[style];
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+    function CreateCaption(username, message) {
+      let caption = ""
 
       if (message.length > 0) {
-        newMessage = "<b>@" + username + ":</b> " + message;
+        caption = "<b>@" + username + ":</b> " + message;
       }
       else {
-        newMessage = "<b>@" + username + "</b>";
+        caption = "<b>@" + username + "</b>";
       }
 
-      caption.innerHTML = newMessage;
+      return caption;
     }
 
-    function setImage(postIndex, imageIndex) {
-      let imagePost = imagePosts[postIndex]
+    function fitCaptionText(captionElement, maxFontSize = 50, minFontSize = 10) {
+      const imageHeight = parseInt(getStyleRuleValue("img", "height"));
 
-      photo.src = imagePost["image_files"][imageIndex];
-      setCaption(imagePost["username"], imagePost["message"])
-    }
+      const container = captionElement.parentElement;
+      let fontSize = maxFontSize;
+      captionElement.style.fontSize = fontSize + "px";
+      const captionElementTopMargin = parseInt(window.getComputedStyle(captionElement).marginTop);
+      const polaroidElementPadding = parseInt(window.getComputedStyle(container).padding)
+      const availableVerticalSpace = container.clientHeight - imageHeight - polaroidElementPadding - captionElementTopMargin
 
-    function presentNextImage() {
-      if (imagePosts.length == 0) {
-        console.log("No images to show.");
-        return;
-      }
-
-      setImage(postIndex, imageIndex);
-
-      if (imageIndex == imagePosts[postIndex]["image_files"].length - 1) {
-        postIndex = (postIndex + 1) % imagePosts.length;
-        imageIndex = 0;
-      }
-      else {
-        imageIndex = imageIndex + 1;
+      while ((captionElement.scrollWidth > container.clientWidth || captionElement.scrollHeight > availableVerticalSpace) && (fontSize > minFontSize)) {
+        fontSize--;
+        captionElement.style.fontSize = fontSize + "px";
       }
     }
 
-    function randomizePolaroidRotation() {
-      const polaroids = document.querySelectorAll('.polaroid');
-      polaroids.forEach(el => {
-        const range = 12
-        const angle = (Math.random() * range - (range / 2)).toFixed(2);
-        el.style.transform = `rotate(${angle}deg)`;
+    function fitCaptions() {
+      document.querySelectorAll('.polaroid .caption').forEach(caption => {
+        fitCaptionText(caption);
       });
     }
 
-    photo.addEventListener('load', () => {
-        randomizePolaroidRotation()
-    });
+    function showPolaroids(images, containerElement) {
+      images.forEach(image => {
+        const frame = document.createElement('div');
+        frame.className = 'polaroid';
 
-    let imagePosts = []
-    let postIndex = 0;
-    let imageIndex = 0;
+        const img = document.createElement('img');
+        img.src = image["file"];
 
+        const text = document.createElement('div');
+        text.className = 'caption';
+        text.innerHTML = CreateCaption(image["username"], image["message"]);
+
+        frame.appendChild(img);
+        frame.appendChild(text);
+
+        containerElement.appendChild(frame);        
+
+        fitCaptions();
+      });
+    }
+
+    function showNextPolaroidBatch() {
+      const polaroidContainer = document.getElementById('polaroids-container')
+      polaroidContainer .innerHTML = '';
+
+      const batchSize = calculatePolaroidBatchSize();
+      const currentBatchStart = currentBatchIndex * batchSize;
+      const currentBatchEnd = currentBatchStart + batchSize;
+      const currentBatch = imageData.slice(currentBatchStart, currentBatchEnd);
+
+      showPolaroids(currentBatch, polaroidContainer);
+
+      currentBatchIndex = (currentBatchIndex + 1) % Math.ceil(imageData.length / batchSize);
+    }
 
     await fetchImageData();
-    presentNextImage(); 
+    showNextPolaroidBatch();
+    window.addEventListener('resize', showNextPolaroidBatch);
 
-    const IMAGE_DATA_UPDATE_INTERVAL = {{ image_fetching_interval }};
-    const SINGLE_IMAGE_PRESENTATION_DURATION = {{ image_rotation_interval }}
-    setInterval(fetchImageData, IMAGE_DATA_UPDATE_INTERVAL); 
-    setInterval(presentNextImage, SINGLE_IMAGE_PRESENTATION_DURATION); 
+    const IMAGE_DATA_FETCH_INTERVAL = {{ image_fetching_interval }};
+    const POLAROID_BATCH_PRESENTATION_DURATION = {{ polaroid_batch_presentation_duration }}
+    setInterval(fetchImageData, IMAGE_DATA_FETCH_INTERVAL); 
+    setInterval(showNextPolaroidBatch, POLAROID_BATCH_PRESENTATION_DURATION); 
+
   </script>
 </body>
 </html>

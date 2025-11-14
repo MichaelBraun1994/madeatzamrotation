@@ -11,6 +11,6 @@ Create a venv, install required pip packages and run:
 
 # Configuration
 
-Configuration is done via a .env file for the bot credentials and a settings.json file passed as first command line parameter.
+Configuration is done via a .env file for the bot credentials and a settings.json file passed as env variable.
 
 Examples for both files are included.

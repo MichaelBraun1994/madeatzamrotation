@@ -8,6 +8,6 @@
     },
     "frontend": {
         "images_fetching_interval": 1800,
-        "image_rotation_interval": 10
+        "polaroid_batch_presentation_duration": 5
     }
 }

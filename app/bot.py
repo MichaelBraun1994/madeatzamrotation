@@ -2,7 +2,6 @@ from typing import List
 from image_posts import ImagePost
 from logging import Logger
 from mattermostdriver import Driver
-from dotenv import load_dotenv
 from settings import Settings
 import os
 
@@ -40,8 +39,6 @@ class Bot:
         self.logger.info("Logged in")
 
     def load_secrets_from_env(self) -> BotSecrets:
-        load_dotenv()
-
         username_env_variable = "MADEATZAM_MATTERMOST_BOT_USERNAME"
         token_env_variable = "MADEATZAM_MATTERMOST_BOT_TOKEN"
 

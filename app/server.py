@@ -5,36 +5,58 @@ Main of Made@ZAM Rotation
 import logging
 import sys
 import time
+import os
 import threading
 from flask import Flask, render_template, jsonify, url_for
+from dotenv import load_dotenv
 
 from bot import Bot
 from cache import Cache
 from settings import Settings
 
-app = Flask(__name__)
 
+def create_app():
+    setup_server()
 
-@app.route("/api/images")
-def get_image_urls():
-    image_posts = cache.get_posts()
+    app = Flask(__name__)
 
-    for image_post in image_posts:
-        image_post["image_files"] = [
-            url_for("static", filename=image_path)
-            for image_path in image_post["image_files"]
-        ]
+    @app.route("/api/images")
+    def get_image_urls():
+        image_posts = cache.get_posts()
 
-    return jsonify(image_posts)
+        images = []
 
+        for image_post in image_posts:
+            image_post["image_files"] = [
+                url_for("static", filename=image_path)
+                for image_path in image_post["image_files"]
+            ]
 
-@app.route("/")
-def index():
-    return render_template(
-        "index.html",
-        image_fetching_interval=settings.frontend_images_fetching_interval,
-        image_rotation_interval=settings.frontend_image_rotation_interval,
-    )
+            first_image_of_post = True
+            for image_path in image_post["image_files"]:
+                image = {}
+                image["file"] = image_path
+                image["username"] = image_post["username"]
+
+                if first_image_of_post:
+                    image["message"] = image_post["message"]
+                else:
+                    image["message"] = ""
+
+                images.append(image)
+                first_image_of_post = False
+
+        return jsonify(images)
+
+    @app.route("/")
+    def index():
+        return render_template(
+            "index.html",
+            image_fetching_interval=settings.frontend_images_fetching_interval,
+            polaroid_batch_presentation_duration=settings.frontend_polaroid_batch_presentation_duration,
+        )
+
+    return app
 
 
 def setup_logger():
@@ -60,11 +82,15 @@ def start_periodic_posts_fetching(interval_seconds):
     thread.start()
 
 
-def start_server(settings_path):
+def setup_server():
+    load_dotenv()
+
     logger = setup_logger()
 
     global settings
-    settings = Settings(settings_path)
+    settings_file_path = os.getenv("MADEATZAM_CONFIG_FILE_PATH")
+    logger.info(f"Loading settings file: {settings_file_path}")
+    settings = Settings(settings_file_path)
 
     global bot
     bot = Bot(settings, logger)
@@ -77,4 +103,3 @@ def start_server(settings_path):
     fetch_posts()
 
     logger.info("Starting server")
-    app.run()
