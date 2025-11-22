@@ -41,58 +41,6 @@
         background-image: url('static/background_landscape.svg');
         background-size: cover;
       }
-      .polaroid {
-        padding: 13px;
-        width: 341px;
-        height: 335px;
-        margin: 0px 25px;
-        background: white;
-        background: linear-gradient(white, oldlace);
-        border: 1px solid #ccc;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        box-sizing: border-box;
-      }
-      img {
-        height: 238px;
-        object-fit: contain;
-        background-color: black;
-        width: 100%;
-        object-fit: contain;
-        background-color: black;
-      }
-
-      .polaroid .caption {
-        font-family: "Caveat", cursive;
-        margin-top: 6px;
-        font-size: 20px;
-        color: #333;
-        text-align: center;
-      }
-
-      .polaroid:nth-child(7n) { 
-        transform: translateY(28px) translateX(5px) rotate(9deg); 
-      }
-
-      /* Create alternating rhythm between rows */
-      .polaroid:nth-child(odd) {
-        transform: translateY(-25px) translateX(-2px) rotate(4deg);
-      }
-
-      .polaroid:nth-child(even) {
-        transform: translateY(0px) rotate(-2deg);
-      }
-
-      /* Progressive rhythm - subtle scale changes */
-      .polaroid:nth-child(5n) {
-        transform: translate(-20px) translateX(10px) rotate(7deg);
-      }
-
-      .polaroid:nth-child(3n+1) {
-        transform: translateY(-23px) rotate(-1deg);
-      }
     }
 
 
@@ -100,8 +48,8 @@
     @media (orientation: portrait) {
       #polaroids-container {
         flex: 1;
-        margin-top: 500px;
-        margin-bottom: 550px;
+        margin-top: 270px;
+        margin-bottom: 270px;
         min-height: 0;
 
         display: flex;
@@ -115,46 +63,59 @@
         background-image: url('static/background_portrait.svg');
         background-size: cover;
       }
-      .polaroid {
-        padding: 26px;
-        width: 682px;
-        height: 670px;
-        margin: 0px 55px;
-        background: white;
-        background: linear-gradient(white, oldlace);
-        border: 1px solid #ccc;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        box-sizing: border-box;
-      }
-      img {
-        height: 473px;
-        width: 100%;
-        object-fit: contain;
-        background-color: black;
-      }
-      .polaroid .caption {
-        font-family: "Caveat", cursive;
-        margin-top: 8px;
-        font-size: 24px;
-        color: #333;
-        text-align: center;
-      }
+    }
 
-      .polaroid:nth-child(4n) {
-        transform: translateY(0px) translateX(47px) translateY(5px) rotate(5deg);
-      }
-      .polaroid:nth-child(4n+2) {
-        transform: translateY(0px) translateX(-21px)  translateY(-7px) rotate(3deg);
-      }
-      .polaroid:nth-child(4n+1) {
-        transform: translateY(0px) translateX(-54px) translateY(10px) rotate(8deg);
-      }
-      .polaroid:nth-child(4n+3) {
-        transform: translateY(0px) translateX(22px) rotate(2deg);
-      }
+    .polaroid {
+      padding: 13px;
+      width: 341px;
+      height: 335px;
+      margin: 0px 25px;
+      background: white;
+      background: linear-gradient(white, oldlace);
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      box-sizing: border-box;
+    }
+    img {
+      height: 238px;
+      object-fit: contain;
+      background-color: black;
+      width: 100%;
+      object-fit: contain;
+      background-color: black;
+    }
+
+    .polaroid .caption {
+      font-family: "Caveat", cursive;
+      margin-top: 6px;
+      font-size: 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    .polaroid:nth-child(7n) { 
+      transform: translateY(28px) translateX(5px) rotate(9deg); 
+    }
+
+    /* Create alternating rhythm between rows */
+    .polaroid:nth-child(odd) {
+      transform: translateY(-25px) translateX(-2px) rotate(4deg);
+    }
+
+    .polaroid:nth-child(even) {
+      transform: translateY(0px) rotate(-2deg);
+    }
+
+    /* Progressive rhythm - subtle scale changes */
+    .polaroid:nth-child(5n) {
+      transform: translate(-20px) translateX(10px) rotate(7deg);
+    }
+
+    .polaroid:nth-child(3n+1) {
+      transform: translateY(-23px) rotate(-1deg);
     }
   </style>
 </head>
